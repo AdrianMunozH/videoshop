@@ -15,16 +15,9 @@
  */
 package videoshop.order;
 
-import videoshop.catalog.Disc;
-
-import java.util.Optional;
-
 import org.salespointframework.catalog.Product;
 import org.salespointframework.core.AbstractEntity;
-import org.salespointframework.order.Cart;
-import org.salespointframework.order.Order;
-import org.salespointframework.order.OrderManager;
-import org.salespointframework.order.OrderStatus;
+import org.salespointframework.order.*;
 import org.salespointframework.payment.Cash;
 import org.salespointframework.quantity.Quantity;
 import org.salespointframework.useraccount.UserAccount;
@@ -33,11 +26,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.bind.annotation.*;
+import videoshop.catalog.Disc;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * A Spring MVC controller to manage the {@link Cart}. {@link Cart} instances are held in the session as they're
@@ -52,7 +47,7 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 class OrderController {
 
 	private final OrderManager<Order> orderManager;
-
+	private List<CartItem> history = new ArrayList<>();
 	/**
 	 * Creates a new {@link OrderController} with the given {@link OrderManager}.
 	 * 
@@ -123,7 +118,7 @@ class OrderController {
 	 * @param userAccount will never be {@literal null}.
 	 * @return
 	 */
-	@PostMapping("/checkout")
+		@PostMapping("/checkout")
 	String buy(@ModelAttribute Cart cart, @LoggedIn Optional<UserAccount> userAccount) {
 
 		return userAccount.map(account -> {
@@ -134,12 +129,13 @@ class OrderController {
 			Order order = new Order(account, Cash.CASH);
 
 			cart.addItemsTo(order);
-
+            System.out.print(userAccount.get().getId());
+			for (Iterator iter = cart.iterator(); iter.hasNext(); )
+				createHistory((CartItem) iter.next());
 			orderManager.payOrder(order);
 			orderManager.completeOrder(order);
 
 			cart.clear();
-
 			return "redirect:/";
 		}).orElse("redirect:/cart");
 	}
@@ -151,5 +147,10 @@ class OrderController {
 		model.addAttribute("ordersCompleted", orderManager.findBy(OrderStatus.COMPLETED));
 
 		return "orders";
+	}
+	@GetMapping("redirect:/")
+	String createHistory(CartItem cartItem) {
+		history.add(cartItem);
+		return null;
 	}
 }
