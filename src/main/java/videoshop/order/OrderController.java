@@ -22,6 +22,7 @@ import org.salespointframework.payment.Cash;
 import org.salespointframework.quantity.Quantity;
 import org.salespointframework.useraccount.UserAccount;
 import org.salespointframework.useraccount.web.LoggedIn;
+import org.springframework.data.repository.query.Param;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -48,7 +49,7 @@ import java.util.Optional;
 class OrderController {
 
 	private final OrderManager<Order> orderManager;
-	private List<CartItem> history = new ArrayList<>();
+	private List<CartItem> historyList = new ArrayList<>();
 	/**
 	 * Creates a new {@link OrderController} with the given {@link OrderManager}.
 	 * 
@@ -83,6 +84,7 @@ class OrderController {
 	 * @param modelMap
 	 * @return
 	 */
+
 	@PostMapping("/cart")
 	String addDisc(@RequestParam("pid") Disc disc, @RequestParam("number") int number, @ModelAttribute Cart cart) {
 
@@ -111,10 +113,7 @@ class OrderController {
 	String basket() {
 		return "cart";
 	}
-	@GetMapping("/history")
-	String history() {
-		return "history";
-	}
+		/*
 
 	/**
 	 * Checks out the current state of the {@link Cart}. Using a method parameter of type {@code Optional<UserAccount>}
@@ -138,7 +137,9 @@ class OrderController {
 				createHistory((CartItem) iter.next());
 			orderManager.payOrder(order);
 			orderManager.completeOrder(order);
-
+			for (CartItem i: historyList) {
+				System.out.println(i.getProductName() + " " + i.getQuantity() + " " + i.getPrice());
+			}
 			cart.clear();
 			return "redirect:/";
 		}).orElse("redirect:/cart");
@@ -147,29 +148,20 @@ class OrderController {
 	@GetMapping("/orders")
 	@PreAuthorize("hasRole('ROLE_BOSS')")
 	String orders(Model model) {
-
 		model.addAttribute("ordersCompleted", orderManager.findBy(OrderStatus.COMPLETED));
 
 		return "orders";
 	}
 
 	public void createHistory(@RequestParam CartItem cartItem) {
-		history.add(cartItem);
-		for (CartItem i: history) {
-			System.out.println(i.getProductName() + " " + i.getQuantity() + " " + i.getPrice());
-			fillList(i.getProductName(),i.getQuantity(),i.getPrice());
-		}
+		historyList.add(cartItem);
+
 
 	}
-	/*
-	@GetMapping("/history")
-	String showHistory(Model model) {
-		model.addAttribute("title", "history");
-		return "history";
-	}*/
-	@PostMapping("/history")
-	String fillList(@RequestParam("name") String name, @RequestParam("number") Quantity number, @RequestParam("price") MonetaryAmount price) {
 
-		return "redirect:/";
+    @GetMapping(path = "/history")
+	String fillList(Model model) {
+        model.addAttribute("historyList", historyList);
+		return "history";
 	}
 }

@@ -12,12 +12,12 @@
     <link th:href="@{/resources/css/style.css}" rel="stylesheet"
           href="../static/resources/css/style.css" type="text/css"/>
 
-    <title th:text="#{history.title}">History</title>
+    <title>History</title>
 </head>
 <body>
 <div class="ui container">
     <header>
-        <h1 th:text="#{history.title}">History</h1>
+        <h1 th:text="${title}">History</h1>
     </header>
     <nav th:include="navigation :: navigation"></nav>
     <table class="ui celled table">
@@ -30,10 +30,10 @@
         </thead>
         <tbody th:remove="all-but-first">
 
-        <tr th:each="item : ${cart} ">
-            <td th:text="${item.productName}">Last Action Hero</td>
+        <tr th:each="item : ${historyList} ">
+            <td th:text="${item.name}">Last Action Hero</td>
             <td th:text="${item.quantity}">10</td>
-            <td th:text="${{item.price}}">10 Euro</td>
+            <td th:text="${item.price}">10 Euro</td>
         </tr>
         <tr>
             <td>Last Action Hero</td>
