@@ -29,6 +29,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 import videoshop.catalog.Disc;
 
+import javax.money.MonetaryAmount;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -105,9 +106,14 @@ class OrderController {
 		}
 	}
 
+
 	@GetMapping("/cart")
 	String basket() {
 		return "cart";
+	}
+	@GetMapping("/history")
+	String history() {
+		return "history";
 	}
 
 	/**
@@ -118,9 +124,8 @@ class OrderController {
 	 * @param userAccount will never be {@literal null}.
 	 * @return
 	 */
-		@PostMapping("/checkout")
+	@PostMapping("/checkout")
 	String buy(@ModelAttribute Cart cart, @LoggedIn Optional<UserAccount> userAccount) {
-
 		return userAccount.map(account -> {
 
 			// (｡◕‿◕｡)
@@ -129,7 +134,6 @@ class OrderController {
 			Order order = new Order(account, Cash.CASH);
 
 			cart.addItemsTo(order);
-            System.out.print(userAccount.get().getId());
 			for (Iterator iter = cart.iterator(); iter.hasNext(); )
 				createHistory((CartItem) iter.next());
 			orderManager.payOrder(order);
@@ -148,9 +152,24 @@ class OrderController {
 
 		return "orders";
 	}
-	@GetMapping("redirect:/")
-	String createHistory(CartItem cartItem) {
+
+	public void createHistory(@RequestParam CartItem cartItem) {
 		history.add(cartItem);
-		return null;
+		for (CartItem i: history) {
+			System.out.println(i.getProductName() + " " + i.getQuantity() + " " + i.getPrice());
+			fillList(i.getProductName(),i.getQuantity(),i.getPrice());
+		}
+
+	}
+	/*
+	@GetMapping("/history")
+	String showHistory(Model model) {
+		model.addAttribute("title", "history");
+		return "history";
+	}*/
+	@PostMapping("/history")
+	String fillList(@RequestParam("name") String name, @RequestParam("number") Quantity number, @RequestParam("price") MonetaryAmount price) {
+
+		return "redirect:/";
 	}
 }
